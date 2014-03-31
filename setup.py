@@ -7,14 +7,15 @@ test with:
 DESCRIPTION = ("Fast text search for large texts using the FM-index algorithm"
                "hopefully this will be a common interface for other libs too")
 LONG_DESCRIPTION = """
-**fmindex-py** is Python C-API bindings for fmindexV2 which is originally available at
+**fmindex-py** is Python C-API bindings for fmindexV2 which is originally 
+available at
 
 http://www.di.unipi.it/~ferragin//Libraries/fmindexV2/index.html
 
 due to the need to modify the makefile, the source is included in the distro.
 
-License is GPLv2 due to fmindexV2 and ds_ssort.  see the folders fmindexV2 and subfolder
-ds_ssort for copyright info.
+License is GPLv2 due to fmindexV2 and ds_ssort.  see the folders fmindexV2 and 
+subfolder ds_ssort for copyright info.
 
 see tests for usage.
 
@@ -25,7 +26,7 @@ and SMALLSMALLFILESIZE doesn't compress the text
 
 DISTNAME = 'fmindex-py'
 LICENSE = 'GPLv2'
-AUTHORS = "Nick Conway, Ben Pruitt"
+AUTHORS = "Nick Conway"
 EMAIL = "a.grinner@gmail.com"
 URL = ""
 DOWNLOAD_URL = ''

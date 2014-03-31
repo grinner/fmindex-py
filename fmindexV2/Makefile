@@ -8,7 +8,7 @@ CC=gcc
 
 
 #these are for maximum speed
-CFLAGS=-g -O9 -lm -fomit-frame-pointer -W -Wall -Winline -DDEBUG=0 -DNDEBUG=1
+CFLAGS=-g -shared -O9 -lm -fomit-frame-pointer -W -Wall -Winline -DDEBUG=0 -DNDEBUG=1
 
 UNAME := $(shell uname)
 ifneq ($(UNAME), Darwin)
