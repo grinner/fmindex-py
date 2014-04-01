@@ -7,6 +7,7 @@
 #include "fm_search.h"
 #include "fm_mng_bits.h"	/* Function to manage bits */
 #include "fm_occurences.h"
+#include "interface.h"
 #include <string.h> /* memcpy */
 
 

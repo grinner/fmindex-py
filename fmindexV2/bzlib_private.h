@@ -29,7 +29,9 @@ typedef unsigned short  UInt16;
 #endif
 
 #ifdef __clang__
-#define _INLINE static inline
+#ifndef _INLINE
+#define _INLINE
+#endif
 #endif
 
 /*-- Constants for the back end. --*/

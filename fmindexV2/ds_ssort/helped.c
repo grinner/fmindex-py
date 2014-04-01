@@ -42,6 +42,19 @@ void deep_sort(Int32 *a, Int32 n, Int32 depth);
 #define Get_small_bucket(pos) ((Text[pos]<<8) + Text[pos+1])
 
 
+/* =======================================================
+   auxiliary procedures and macro for bentley-sedgewick's
+   multikey quicksort.  copy for linking issues NC
+   ======================================================= */
+void vecswap2_copy(Int32 *a, Int32 *b, int n)
+{   while (n-- > 0) {
+        Int32 t = *a;
+        *a++ = *b;
+        *b++ = t;
+    }
+}
+
+
 /* *****************************************************************
    This procedure sort the strings a[0] ... a[n-1] with the help of an
    anchor. The real sorting is done by the procedure
@@ -529,8 +542,8 @@ Int32 split_group(Int32 *a, int n, int depth,int offset,Int32 pivot,int *first)
         pb++;
         pc--;
     }
-    r = min(pa-pa_old, pb-pa); vecswap2(pa_old,  pb-r, r);
-    r = min(pd-pc, pd_old-pd); vecswap2(pb, pd_old+1-r, r);
+    r = min(pa-pa_old, pb-pa); vecswap2_copy(pa_old,  pb-r, r);
+    r = min(pd-pc, pd_old-pd); vecswap2_copy(pb, pd_old+1-r, r);
     // ------ compute new boundaries ----- 
     pa = pa_old + (pb-pa);     // there are pb-pa chars < partval
     pd = pd_old - (pd-pc);     // there are pd-pc chars > partval

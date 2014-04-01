@@ -18,7 +18,7 @@
 #include <assert.h>
 
 #ifdef __clang__
-#define _INLINE static inline
+#define _INLINE
 #else
 #define _INLINE __inline__
 #endif
@@ -35,8 +35,6 @@ typedef uint64_t UInt64;
 #define False  ((Bool)0)
 #define Cmp_overshoot 16
 #define Max_thresh 30
-
-void vecswap2(Int32 *a, Int32 *b, int n);
 
 #ifndef min
 #define min(a, b) ((a)<=(b) ? (a) : (b))

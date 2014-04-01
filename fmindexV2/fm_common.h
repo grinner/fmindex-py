@@ -16,7 +16,7 @@ typedef unsigned long ulong;
 #endif
 
 #ifdef __clang__
-#define _INLINE static inline
+#define _INLINE
 #else
 #define _INLINE __inline__
 #endif
