@@ -28,7 +28,7 @@ typedef unsigned short  UInt16;
 #define __inline__  /* */
 #endif
 
-#ifdef __APPLE__
+#ifdef __clang__
 #define _INLINE static inline
 #endif
 

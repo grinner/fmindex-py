@@ -13,8 +13,8 @@
 #include <stdint.h>
 #include <assert.h>
 
-#ifdef __APPLE__
-#define _INLINE __inline__
+#ifdef __clang__
+#define _INLINE static inline
 #else
 #define _INLINE __inline__
 #endif
