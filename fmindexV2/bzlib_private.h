@@ -26,7 +26,11 @@ typedef unsigned short  UInt16;
 
 #ifndef __GNUC__
 #define __inline__  /* */
-#endif 
+#endif
+
+#ifdef __APPLE__
+#define _INLINE static inline
+#endif
 
 /*-- Constants for the back end. --*/
 

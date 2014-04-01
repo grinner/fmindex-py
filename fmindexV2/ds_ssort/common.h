@@ -13,6 +13,12 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifdef __APPLE__
+#define _INLINE __inline__
+#else
+#define _INLINE __inline__
+#endif
+
 /* ---------- types and costants ----------- */
 typedef int32_t        Int32;
 typedef uint32_t UInt32;

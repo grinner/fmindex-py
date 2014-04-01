@@ -15,6 +15,12 @@ typedef unsigned long ulong;
 #define DATATYPE 1
 #endif
 
+#ifdef __APPLE__
+#define _INLINE __inline__
+#else
+#define _INLINE __inline__
+#endif
+
 /* Some useful macro */
 #define EOF_shift(n) (n < index->bwt_eof_pos) ? n+1 :  n
 #define MIN(a, b) ((a)<=(b) ? (a) : (b))

@@ -589,7 +589,7 @@ return FM_OK;
  001 --> 2  
  etc.
  ********************************************************* */ 
- __inline__ static  int
+_INLINE static  int
 decode_unary (void) 
 {
 	

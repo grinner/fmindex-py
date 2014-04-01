@@ -55,7 +55,7 @@ void shallow_sort(Int32 *a, int n, int shallow_limit)
    auxiliary procedures and macro for bentley-sedgewick's
    multikey quicksort
    ======================================================= */
-__inline__ void vecswap2(Int32 *a, Int32 *b, int n)
+_INLINE void vecswap2(Int32 *a, Int32 *b, int n)
 {   while (n-- > 0) {
         Int32 t = *a;
         *a++ = *b;
@@ -66,7 +66,7 @@ __inline__ void vecswap2(Int32 *a, Int32 *b, int n)
 #define swap2(a, b) { t = *(a); *(a) = *(b); *(b) = t; }
 #define ptr2char(i) (*(*(i) + text_depth))
 
-__inline__ Int32 *med3func(Int32 *a, Int32 *b, Int32 *c, UChar *text_depth)
+_INLINE Int32 *med3func(Int32 *a, Int32 *b, Int32 *c, UChar *text_depth)
 {   int va, vb, vc;
     if ((va=ptr2char(a)) == (vb=ptr2char(b)))
         return a;
@@ -348,7 +348,7 @@ void shallow_mkq32(Int32 *a, int n, UChar *text_depth)
    At exit Cmp_left has been decreased by the # of comparisons done   
    *********************************************************************** */ 
 static Int32 Cmp_left;
-__inline__ 
+_INLINE
 Int32 cmp_unrolled_shallow_lcp(UChar *b1, UChar *b2)
 {
 

@@ -24,7 +24,7 @@ extern Int32 Calls_deep_sort;
    in Cmp_done the number of successfull comparisons done
    *********************************************************************** */ 
 static Int32 Cmp_done;
-__inline__
+_INLINE
 Int32 cmp_unrolled_lcp(UChar *b1, UChar *b2)
 {
 

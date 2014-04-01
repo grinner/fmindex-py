@@ -150,7 +150,7 @@ void blind_ssort(Int32 *a, Int32 n, Int32 depth)
 
 
 
-__inline__ node *new_node__blind_ssort(void)
+_INLINE node *new_node__blind_ssort(void)
 {
   if(bufn_num-- == 0) {
     bufn = (node *) malloc(BUFSIZE * sizeof(node));
@@ -278,7 +278,7 @@ __inline__ node *new_node__blind_ssort(void)
    the function return the result of the comparison (+ or -) and writes 
    in Cmp_done the number of comparisons done
    *********************************************************************** */ 
- __inline__
+_INLINE
 Int32 get_lcp_unrolled(UChar *b1, UChar *b2, Int32 cmp_limit)
 {
   Int32 cmp2do; 
