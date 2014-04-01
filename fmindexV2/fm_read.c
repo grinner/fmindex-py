@@ -298,7 +298,7 @@ fm_read_basic_prologue (fm_index * s)
 	/* read Mark mode & starting position of occ list */
 	s->specialchar = (uchar) fm_bit_read (8);
 	s->skip =  fm_bit_read (32);
-	uint start = fm_uint_read ();
+	ulong start = fm_uint_read ();	/* changed uint to ulong since uint is not defined NC */
 
 	s->start_prologue_occ = s->compress + start;
 	s->start_prologue_info_sb = fm_uint_read ();
