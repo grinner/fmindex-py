@@ -32,6 +32,8 @@ extern Int32 Calls_anchor_sort_forw;
 extern Int32 Calls_anchor_sort_backw;     
 extern Int32 Calls_pseudo_anchor_sort_forw;     
 
+extern void vecswap2(Int32 *a, Int32 *b, int n); // Added NC CLANG issues
+
 // function for deep sorting the suffixes in a[0] .. a[n-1]
 // deep is the length of the prefixes known to be equal in all suffixes
 void deep_sort(Int32 *a, Int32 n, Int32 depth);
@@ -489,7 +491,7 @@ void update_anchors(Int32 *a, Int32 n)
  
 Int32 split_group(Int32 *a, int n, int depth,int offset,Int32 pivot,int *first)
 {
-  void vecswap2(Int32 *a, Int32 *b, int n);
+  // void vecswap2(Int32 *a, Int32 *b, int n); // moved to top NC
   int r, partval;
   Int32 *pa, *pb, *pc, *pd, *pa_old, *pd_old, pivot_pos, t;
   UChar *text_depth,*text_limit;
