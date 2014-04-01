@@ -32,8 +32,6 @@ extern Int32 Calls_anchor_sort_forw;
 extern Int32 Calls_anchor_sort_backw;     
 extern Int32 Calls_pseudo_anchor_sort_forw;     
 
-extern void vecswap2(Int32 *a, Int32 *b, int n); // Added NC CLANG issues
-
 // function for deep sorting the suffixes in a[0] .. a[n-1]
 // deep is the length of the prefixes known to be equal in all suffixes
 void deep_sort(Int32 *a, Int32 n, Int32 depth);

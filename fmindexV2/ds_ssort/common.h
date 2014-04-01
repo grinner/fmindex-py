@@ -3,6 +3,10 @@
    Giovanni Manzini 
    2-apr 2001
    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+
+#ifndef _DS_SORT_COMMON_H
+#define _DS_SORT_COMMON_H
+
 /* ----------- use assertion if DEBUG!=0 ------------- */
 #ifndef DEBUG
 #define DEBUG 1   /* set DEBUG to 0 to remove assertions and extra checks */
@@ -32,6 +36,7 @@ typedef uint64_t UInt64;
 #define Cmp_overshoot 16
 #define Max_thresh 30
 
+void vecswap2(Int32 *a, Int32 *b, int n);
 
 #ifndef min
 #define min(a, b) ((a)<=(b) ? (a) : (b))
@@ -57,7 +62,7 @@ typedef uint64_t UInt64;
 int scmp3(unsigned char *p, unsigned char *q, int *l, int maxl);
 void pretty_putchar(int c);
 
-
+#endif
 
 
 
