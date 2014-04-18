@@ -6,7 +6,7 @@ CC=gcc
 #CFLAGS = -g -W -Wall -Winline -O2 
 
 #these are for maximum speed
-CFLAGS=-g -O3 -fomit-frame-pointer -W -Wall -Winline \
+CFLAGS=-g -shared -O3 -fomit-frame-pointer -W -Wall -Winline \
        -DDEBUG=0 -DNDEBUG=1  
 UNAME := $(shell uname)
 ifneq ($(UNAME), Darwin)

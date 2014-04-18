@@ -3,6 +3,10 @@
    Giovanni Manzini 
    2-apr 2001
    >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> */
+
+#ifndef _DS_SORT_COMMON_H
+#define _DS_SORT_COMMON_H
+
 /* ----------- use assertion if DEBUG!=0 ------------- */
 #ifndef DEBUG
 #define DEBUG 1   /* set DEBUG to 0 to remove assertions and extra checks */
@@ -13,8 +17,8 @@
 #include <stdint.h>
 #include <assert.h>
 
-#ifdef __APPLE__
-#define _INLINE __inline__
+#ifdef __clang__
+#define _INLINE
 #else
 #define _INLINE __inline__
 #endif
@@ -31,7 +35,6 @@ typedef uint64_t UInt64;
 #define False  ((Bool)0)
 #define Cmp_overshoot 16
 #define Max_thresh 30
-
 
 #ifndef min
 #define min(a, b) ((a)<=(b) ? (a) : (b))
@@ -57,7 +60,7 @@ typedef uint64_t UInt64;
 int scmp3(unsigned char *p, unsigned char *q, int *l, int maxl);
 void pretty_putchar(int c);
 
-
+#endif
 
 
 

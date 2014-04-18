@@ -15,8 +15,8 @@ typedef unsigned long ulong;
 #define DATATYPE 1
 #endif
 
-#ifdef __APPLE__
-#define _INLINE __inline__
+#ifdef __clang__
+#define _INLINE
 #else
 #define _INLINE __inline__
 #endif

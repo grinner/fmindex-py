@@ -69,7 +69,8 @@ int main(int argc, char *argv[])
   UChar *x;
   clock_t end,start, end_real, start_real;
   struct tms r;
-  double tot_time, tot_time_real;
+  double tot_time = 0.0;
+  double tot_time_real = 0.0;
   extern char *optarg;
   extern int optind, opterr, optopt;
   char *fnam, *sa_filename;

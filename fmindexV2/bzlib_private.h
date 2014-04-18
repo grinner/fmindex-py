@@ -28,8 +28,10 @@ typedef unsigned short  UInt16;
 #define __inline__  /* */
 #endif
 
-#ifdef __APPLE__
-#define _INLINE static inline
+#ifdef __clang__
+#ifndef _INLINE
+#define _INLINE
+#endif
 #endif
 
 /*-- Constants for the back end. --*/
