@@ -3,6 +3,7 @@
  */
 
 #include "fm_index.h"
+#include <inttypes.h> // Added NC
 #include "fm_build.h"
 #include "fm_common.h"
 #include "fm_occurences.h"
@@ -202,7 +203,7 @@ int fm_build(fm_index *index, uchar *text, ulong length) {
         }
         index->text = texts;
     }
-    
+  
     if(index->text_size < SMALLSMALLFILESIZE) {
         
         index->smalltext = 1;
@@ -220,7 +221,6 @@ int fm_build(fm_index *index, uchar *text, ulong length) {
         return FM_OK;
     }   
 
-
     if(index->text_size < SMALLFILESIZE) { // writes plain text
 
         index->smalltext = 2;
@@ -229,6 +229,7 @@ int fm_build(fm_index *index, uchar *text, ulong length) {
         error = build_bwt(index);
         if (error) { return error; }
         free(index->lf);
+
         return fm_bwt_compress(index);
     }
     
@@ -453,13 +454,15 @@ static int select_subchar(fm_index *s) {
 
 int build_sa(fm_index *s) { 
     
-  s->lf = malloc(s->text_size * sizeof(ulong));
+  // s->lf = (ulong *) malloc(s->text_size * sizeof(ulong));
+  s->lf = (uint32_t *) malloc(s->text_size * sizeof(uint32_t)); // Added NC
   if (s->lf == NULL) {
       return FM_OUTMEM;
   }
 
   /* compute Suffix Array with library */  
-  ds_ssort(s->text, (int*) s->lf, s->text_size);
+  // ds_ssort(s->text, (int*) s->lf, s->text_size);
+  ds_ssort(s->text, (int32_t *) s->lf, s->text_size); // Added NC
   return FM_OK;
 
 }
@@ -533,21 +536,25 @@ int build_bwt(fm_index *s) {
   if(s->bwt==NULL) {
       return FM_OUTMEM;
   }
+
   s->bwt[0] = s->text[s->text_size-1];  //L[0] = Text[n-1]
 
   /* not till the EOF meeting the bwt and 'more' forward one element 
       after indices knows bwt and return the same.
   */
   
-  ulong *sa = s->lf;                // points to the first element
+  // ulong *sa = s->lf;          // points to the first element
+  int32_t *sa = s->lf;          // points to the first element NC
   uchar *bwt = &(s->bwt[1]);        // points to the second element
+  
   for(i=0; i < s->text_size; i++) { // not readable but more performance 
-    if(*sa !=0 ){                   // in place of *bwt was s->bwt[j++] with j=1
+    if(*sa !=0 ) {                   // in place of *bwt was s->bwt[j++] with j=1
       *bwt = s->text[(*sa)-1];      // in place of *safix s->lf[i]
       bwt++; 
     } else {
       s->bwt_eof_pos = i; // EOF is not written but its position remembered !   
     }
+    
     sa++;
   }
 
@@ -1060,6 +1067,46 @@ int save_index_mem(void *indexe, uchar *compress){
 /* 
   Opens and reads a text file 
 */
+int fm_read_file2(char *filename, uchar **textt, ulong *length, int stripnewlines) {
+
+  uchar *text;
+  unsigned long t, overshoot = (ulong) init_ds_ssort(500, 2000); 
+  FILE *infile;
+  
+  infile = fopen(filename, "rb"); // b is for binary: required by DOS
+  if(infile == NULL) { return FM_FILEERR; }
+  
+  /* store input file length */
+  if(fseek(infile,0,SEEK_END) != 0 ) { return FM_FILEERR; }
+  *length = ftell(infile);
+  
+  /* alloc memory for text (the overshoot is for suffix sorting) */
+  text = malloc(((*length) + overshoot)*sizeof(*text)); 
+  if(text == NULL) { return FM_OUTMEM; }  
+  
+  /* read text in one sweep */
+  rewind(infile);
+  t = fread(text, sizeof(*text), (size_t) *length, infile);
+  if(t != *length) { return FM_READERR; }
+  // Added NC to strip newlines
+  if (stripnewlines) {
+    int i, j;
+    for (i=0, j=0; i < *length; i++) {
+      if (text[i] != '\n') {
+        text[j++] = text[i];
+      }
+    }
+    text[j] = '\0';
+    *length = j;  // rebase length
+  }
+  *textt = text;
+  fclose(infile);
+  return FM_OK;
+}
+
+/* 
+  Opens and reads a text file 
+*/
 int fm_read_file(char *filename, uchar **textt, ulong *length) {
 
   uchar *text;
@@ -1081,6 +1128,7 @@ int fm_read_file(char *filename, uchar **textt, ulong *length) {
   rewind(infile);
   t = fread(text, sizeof(*text), (size_t) *length, infile);
   if(t != *length) { return FM_READERR; }
+
   *textt = text;
   fclose(infile);
   return FM_OK;

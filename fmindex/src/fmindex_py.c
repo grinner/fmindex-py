@@ -34,7 +34,7 @@ char err_buffer[512];
 typedef struct {
     PyObject_HEAD
     fm_index* idx;
-    int fm_flag;
+    int fm_flag;    // does nothing could remove this
 } FMIndex;
 
 static void
@@ -70,11 +70,13 @@ FMIndex_init(FMIndex *self, PyObject *args, PyObject *kwds) {
     int error;
     fm_index * self_idx;
 
+    int strip_newline = 1; // strip by default
+
     char * in_text=NULL;
     int in_text_length;
     unsigned long overshoot;
 
-    uchar *text;
+    uchar *text=NULL;
     ulong text_len;
     ulong bsl1 = 16;
     ulong bsl2 = 512;
@@ -88,7 +90,8 @@ FMIndex_init(FMIndex *self, PyObject *args, PyObject *kwds) {
                             "superbucket_size",
                             "bucket_size",
                             "frequency",
-                            "fm_flag", 
+                            "strip_newline",
+                            "fm_flag",
                             NULL};
 
     if (self == NULL) {
@@ -100,6 +103,7 @@ FMIndex_init(FMIndex *self, PyObject *args, PyObject *kwds) {
                                       &from_text_file, &from_text_file_length,
                                       &in_text, &in_text_length,
                                       &bsl1, &bsl2, &freq,
+                                      &strip_newline,
                                       &self->fm_flag))  {
         PyErr_SetString(PyExc_TypeError, "FMIndex_init: arg problem\n");
         return -1; 
@@ -115,7 +119,7 @@ FMIndex_init(FMIndex *self, PyObject *args, PyObject *kwds) {
         }
     } else { // must create from scratch
         if (from_text_file != NULL) {
-            error = fm_read_file(from_text_file, &text, &text_len);
+            error = fm_read_file2(from_text_file, &text, &text_len, strip_newline);
             if (error) {
                 sprintf(err_buffer, "FMIndex_init: could not load text file: %s\n", from_text_file);
                 PyErr_SetString(PyExc_IOError, err_buffer);
@@ -152,7 +156,7 @@ FMIndex_init(FMIndex *self, PyObject *args, PyObject *kwds) {
                 PyErr_SetString(PyExc_IOError, err_buffer);
                 return -1;
         }
-
+        // printf("building: %d, %s\n", text_len, text);
         error =  fm_build(self_idx, text, text_len);
         if (error) {
             sprintf(err_buffer, "FMIndex_init: build error %d\n", error);

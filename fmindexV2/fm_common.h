@@ -1,6 +1,6 @@
 #ifndef __FM_COMMON
 #define __FM_COMMON
-#define TESTINFO (0)
+#define TESTINFO (1)
 
 #include <stdio.h>
 #include <assert.h>
