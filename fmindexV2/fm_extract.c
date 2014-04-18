@@ -5,7 +5,7 @@
 #include "fm_index.h"
 #include "fm_extract.h"
 #include "fm_search.h"
-#include "fm_mng_bits.h"	/* Function to manage bits */
+#include "fm_mng_bits.h"  /* Function to manage bits */
 #include "fm_occurences.h"
 #include <string.h> /* memcpy */
 
@@ -19,88 +19,92 @@
  */
 
 int extract(void * indexe, ulong from, ulong to, uchar **dest, 
-			ulong *snippet_length) {
+      ulong *snippet_length) {
 
-	fm_index * index = (fm_index *) indexe;
-	ulong j, skip, numchar;
-	ulong pos_text = 0; /* last readen position */
-	uchar * text;
-	
-	if ((from >= index->text_size) || (from >= to)){
-					*dest = NULL; 
-					*snippet_length = 0;
-			return FM_OK; // Invalid Position
-	}
+  fm_index * index = (fm_index *) indexe;
+  ulong j, skip, numchar;
+  ulong pos_text = 0; /* last readen position */
+  uchar * text;
+  
+  if ( (from >= index->text_size) || (from >= to) ) {
+    *dest = NULL; 
+    *snippet_length = 0;
+    return FM_OK; // Invalid Position
+  }
 
-	/* COMMENTED OUT BY NC to enable small text extraction 
+  /* COMMENTED OUT BY NC to enable small text extraction 
     * unclear what issues this will cause until tested
     */
     /*
     * if (index->skip == 0)  
-	*		return FM_NOMARKEDCHAR;
+    *   return FM_NOMARKEDCHAR;
     */
 
-	to = MIN(to, index->text_size-1);
-	
-	if(index->smalltext) { //uses Boyer-Moore algorithm
-		*snippet_length = to-from+1;
-		*dest = malloc(sizeof(uchar)*(*snippet_length));
-		if (*dest==NULL) return FM_OUTMEM;
-		memcpy(*dest, index->text+from, (*snippet_length)*sizeof(uchar));
-		return FM_OK;
-	}
-	
-	ulong real_text_size;
-	if(index->skip>1) real_text_size = index->text_size-index->num_marked_rows; 
-	else real_text_size = index->text_size;
-		
-	if ((from == 0) && (to == real_text_size-1)) { // potrebbe essere conveniente anche se inferiore
-			int error = fm_unbuild(index, dest, snippet_length);
-			return error;
-	}
-	
-	numchar = to-from+1;
-		
-	/* get_row */
-	ulong occ_sb[256], occ_b[256];
-	uchar c, c_sb;
-	ulong pos_row_compr = to/index->skip;
-    ulong offset = (pos_row_compr*index->log2_row)%8;
-	fm_init_bit_reader(index->compress+index->pos_marked_row_extr+pos_row_compr*index->log2_row/8);
-	if(offset) fm_bit_read(offset);
-	ulong row = fm_bit_read(index->log2_row);
-	row = EOF_shift(row);
-		
-	text = (uchar *) malloc(sizeof(uchar) * numchar);
-	if (text == NULL) 
-			return FM_OUTMEM;
-		
-    if (to > index->text_size-1)
-          skip = index->text_size-1-to;
-        else
-          skip = index->skip-to%index->skip-1;
-
-		for(j=0; j < numchar+skip;) {
-			    get_info_sb(row, occ_sb, index);  
-				c = get_info_b(NULL_CHAR, row, occ_b, WHAT_CHAR_IS, index);  
-				assert(c < index->alpha_size_sb);
-				c_sb = index->inv_map_sb[c];
-				assert(c_sb < index->alpha_size);
-				 
-				if ((index->skip <= 1) || (c_sb != index->specialchar))  	
-						if(j>=skip) 
-							text[numchar-1-(j-skip)] = index->inv_char_map[c_sb]; 	
-				
-				row = index->bwt_occ[c_sb] + occ_sb[c_sb] + occ_b[c] - 1; // get next row
-				if(row == index->bwt_eof_pos) break;
-				if(c_sb != index->specialchar) j++;
-				row = EOF_shift(row);   
-		}
-	
-	*snippet_length = numchar;
-	*dest = text;
-	
-	return FM_OK;
+  to = MIN(to, index->text_size - 1);
+  
+  if(index->smalltext) { //uses Boyer-Moore algorithm
+    *snippet_length = to - from + 1;
+    *dest = malloc(sizeof(uchar)*(*snippet_length));
+    if (*dest==NULL) { return FM_OUTMEM; }
+    memcpy(*dest, index->text+from, (*snippet_length)*sizeof(uchar));
+    return FM_OK;
+  }
+  
+  ulong real_text_size;
+  if(index->skip > 1) { 
+    real_text_size = index->text_size-index->num_marked_rows; 
+  } else { 
+    real_text_size = index->text_size;
+  }
+  if ((from == 0) && (to == real_text_size - 1)) { // may also be appropriate if lower
+    int error = fm_unbuild(index, dest, snippet_length);
+    return error;
+  }
+  
+  numchar = to - from + 1;
+    
+  /* get_row */
+  ulong occ_sb[256], occ_b[256];
+  uchar c, c_sb;
+  ulong pos_row_compr = to/index->skip;
+    ulong offset = (pos_row_compr*index->log2_row) % 8;
+  fm_init_bit_reader(index->compress + index->pos_marked_row_extr + pos_row_compr*index->log2_row/8);
+  if(offset) { fm_bit_read(offset); }
+  ulong row = fm_bit_read(index->log2_row);
+  row = EOF_shift(row);
+    
+  text = (uchar *) malloc(sizeof(uchar) * numchar);
+  if (text == NULL) {
+    return FM_OUTMEM;
+  }
+    
+  if (to > index->text_size - 1) {
+    skip = index->text_size - 1 - to;
+  } else {
+    skip = index->skip - to % index->skip - 1;
+  }
+  for(j=0; j < numchar+skip;) {
+    get_info_sb(row, occ_sb, index);  
+    c = get_info_b(NULL_CHAR, row, occ_b, WHAT_CHAR_IS, index);  
+    assert(c < index->alpha_size_sb);
+    c_sb = index->inv_map_sb[c];
+    assert(c_sb < index->alpha_size);
+         
+    if ((index->skip <= 1) || (c_sb != index->specialchar)) {  
+      if(j >= skip) {
+        text[numchar - 1 - (j - skip)] = index->inv_char_map[c_sb];   
+      }
+    }
+    row = index->bwt_occ[c_sb] + occ_sb[c_sb] + occ_b[c] - 1; // get next row
+    if(row == index->bwt_eof_pos) { break; }
+    if(c_sb != index->specialchar) { j++; }
+    row = EOF_shift(row);   
+  }
+  
+  *snippet_length = numchar;
+  *dest = text;
+  
+  return FM_OK;
 }
 
 /*
@@ -109,7 +113,7 @@ int extract(void * indexe, ulong from, ulong to, uchar **dest,
    return the number of chars actually read 
 */
 ulong go_back(fm_index *index, ulong row, ulong len, uchar *dest) {
-	
+  
   ulong written, curr_row, n, occ_sb[256], occ_b[256];
   uchar c, c_sb, cs;
  
@@ -128,103 +132,108 @@ ulong go_back(fm_index *index, ulong row, ulong len, uchar *dest) {
   
     c_sb = index->inv_map_sb[c];
     assert(c_sb < index->alpha_size);
-	cs = c_sb;
+    cs = c_sb;
   
-		if ((index->skip <= 1) || (cs != index->specialchar)) { //skip special char		
-    		dest[written++] = index->inv_char_map[cs]; 	// store char    
-	}
-    n = occ_sb[c_sb] + occ_b[c];         	    // # of occ before curr_row
+    if ((index->skip <= 1) || (cs != index->specialchar)) { //skip special char   
+        dest[written++] = index->inv_char_map[cs];  // store char    
+    }
+    n = occ_sb[c_sb] + occ_b[c];              // # of occ before curr_row
 
-	curr_row = index->bwt_occ[c_sb] + n - 1; // get next row
-    if(curr_row == index->bwt_eof_pos) break;    
+    curr_row = index->bwt_occ[c_sb] + n - 1; // get next row
+    if(curr_row == index->bwt_eof_pos) { break; }    
     curr_row = EOF_shift(curr_row);        
-	
+
   }
 
   return written;
 }
 
 int display(void *indexe, uchar *pattern, ulong length, ulong nums, ulong *numocc, 
-			uchar **snippet_text, ulong **snippet_len) {
-	
-	ulong row, i,j, *occ, len, skip, to, from, pos_row_compr, offset,occ_sb[256], occ_b[256];
-	uchar c, c_sb;
-	int p;			
-	fm_index * index = (fm_index *) indexe;
-			
-	len = length + 2*nums;
-				
-	/* locate */
-	int error =	locate (indexe, pattern, length, &occ, numocc);
+      uchar **snippet_text, ulong **snippet_len) {
+  
+  ulong row, i,j, *occ, len, skip, to, from, pos_row_compr, offset,occ_sb[256], occ_b[256];
+  uchar c, c_sb;
+  int p;     
+  fm_index * index = (fm_index *) indexe;
+      
+  len = length + 2*nums;
+        
+  /* locate */
+  int error =  locate(indexe, pattern, length, &occ, numocc);
 
-	if(error!=FM_OK) return error;
-		
-	if(*numocc ==0) {
-	  *snippet_len = NULL;
-      *snippet_text = NULL;
+  if(error!=FM_OK) { return error;}
+
+  if(*numocc ==0) {
+    *snippet_len = NULL;
+    *snippet_text = NULL;
+  }
+  *snippet_len = (ulong *) malloc(sizeof(ulong) * (*numocc));
+  if (*snippet_len == NULL) {
+    return FM_OUTMEM;
+  }
+  *snippet_text = (uchar *) malloc(sizeof(uchar) * len *(*numocc));
+  if (*snippet_text == NULL) {
+    return FM_OUTMEM;
+  }
+  
+  uchar *text = *snippet_text;
+  
+  ulong pos;
+
+  for(i=0; i < *numocc; i++) {
+    pos = occ[i];
+    if (pos>nums) { 
+      from = pos-nums;
+    } else {
+      from = 0;
     }
-	*snippet_len = (ulong *) malloc (sizeof (ulong) * (*numocc));
-	if (*snippet_len == NULL)
-		return FM_OUTMEM;
+    to = pos + length + nums - 1 < index->text_size - 1 ? pos + length + nums - 1 : index->text_size - 1;
+    len = to - from + 1;
 
-	*snippet_text = (uchar *) malloc (sizeof (uchar) * len *(*numocc));
-	if (*snippet_text == NULL)
-		return FM_OUTMEM;	
-	
-	uchar *text = *snippet_text;
-	
-	ulong pos;
-
-	for(i=0; i<*numocc; i++) {
-		pos = occ[i];
-		if (pos>nums) from = pos-nums;
-        else from = 0;
-        to = pos+length+nums-1<index->text_size-1 ? pos+length+nums-1:index->text_size-1;
-       	len = to-from+1;
-		
-        if(index->smalltext) { /* added NC for smalltext processing */
-            for (j=from, p=0; j <= to; j++, p++){
-               text[p] = index->text[j];
-            }
-        } else {
-            /* get_row */
-            pos_row_compr = to/index->skip;
-            offset = (pos_row_compr*index->log2_row)%8;
-            fm_init_bit_reader(index->compress+index->pos_marked_row_extr+pos_row_compr*index->log2_row/8);
-            if(offset) fm_bit_read(offset);
-            row = fm_bit_read(index->log2_row);
-            row = EOF_shift(row);
+    if(index->smalltext) { /* added NC for smalltext processing */
+      for (j=from, p=0; j <= to; j++, p++){
+         text[p] = index->text[j];
+      }
+    } else {
+      /* get_row */
+      pos_row_compr = to/index->skip;
+      offset = (pos_row_compr*index->log2_row) % 8;
+      fm_init_bit_reader(index->compress + index->pos_marked_row_extr + pos_row_compr*index->log2_row/8);
+      if(offset) { fm_bit_read(offset); }
+      row = fm_bit_read(index->log2_row);
+      row = EOF_shift(row);
             
-            if (to > index->text_size-1)
-              skip = index->text_size-1-to;
-            else
-              skip = index->skip-to%index->skip-1;
-            
-            for(j=0; j < len+skip;) {
-                    get_info_sb(row, occ_sb, index);  
-                    c = get_info_b(NULL_CHAR, row, occ_b, WHAT_CHAR_IS, index);  
-                    assert(c < index->alpha_size_sb);
-                    c_sb = index->inv_map_sb[c];
-                    assert(c_sb < index->alpha_size);
-                     
-                    if ((index->skip <= 1) || (c_sb != index->specialchar))     
-                            if(j>=skip) 
-                                text[len-1-(j-skip)] = index->inv_char_map[c_sb];   
-                    
-                    row = index->bwt_occ[c_sb] + occ_sb[c_sb] + occ_b[c] - 1; // get next row
-                    if(row == index->bwt_eof_pos) break;
-                    if(c_sb != index->specialchar) j++;
-                    row = EOF_shift(row);   
+      if (to > index->text_size - 1) {
+        skip = index->text_size - 1 - to;
+      } else {
+        skip = index->skip-to%index->skip - 1;
+      }
+      for(j=0; j < len+skip;) {
+        get_info_sb(row, occ_sb, index);  
+        c = get_info_b(NULL_CHAR, row, occ_b, WHAT_CHAR_IS, index);  
+        assert(c < index->alpha_size_sb);
+        c_sb = index->inv_map_sb[c];
+        assert(c_sb < index->alpha_size);
+               
+        if ((index->skip <= 1) || (c_sb != index->specialchar)) {   
+            if(j >= skip) {
+                text[len - 1 - (j - skip)] = index->inv_char_map[c_sb];   
             }
-        } /* end else added NC */
+        }
+        row = index->bwt_occ[c_sb] + occ_sb[c_sb] + occ_b[c] - 1; // get next row
+        if(row == index->bwt_eof_pos) { break; }
+        if(c_sb != index->specialchar) { j++; }
+        row = EOF_shift(row);   
+      }
+    } /* end else added NC */
 
 
-		(*snippet_len)[i] = len;
-        text += length+2*nums;	
-	}		
-	
-	if (numocc) free (occ);
-	return(FM_OK);	
+    (*snippet_len)[i] = len;
+    text += length+2*nums;  
+  }   
+  
+  if (numocc) { free(occ); }
+  return(FM_OK);  
 }
 
 #if 0
@@ -234,7 +243,7 @@ int display(void *indexe, uchar *pattern, ulong length, ulong nums, ulong *numoc
    return the number of chars actually read 
 */
 ulong go_forw(fm_index *s, ulong row, ulong len, uchar *dest) {
-	
+  
   uchar get_firstcolumn_char(fm_index *s, ulong);
   ulong fl_map(fm_index *s, ulong, uchar);
   
@@ -245,14 +254,14 @@ ulong go_forw(fm_index *s, ulong row, ulong len, uchar *dest) {
   
     c = get_firstcolumn_char(s, row);
     assert(c < s->alpha_size);
-	cs = c;
-	if ((s->skip <= 1) || (cs != s->specialchar)) { // skip special char 
-    	dest[written++] = s->inv_char_map[cs];
-	}
+  cs = c;
+  if ((s->skip <= 1) || (cs != s->specialchar)) { // skip special char 
+      dest[written++] = s->inv_char_map[cs];
+  }
     // compute the first to last mapping
     row = fl_map(s, row,c);
     // adjust row to take the EOF symbol into account
-	if(row == 0) break; // row = -1
+  if(row == 0) break; // row = -1
     if(row <= s->bwt_eof_pos) row -= 1;
      }
  
@@ -260,7 +269,7 @@ ulong go_forw(fm_index *s, ulong row, ulong len, uchar *dest) {
 }
 
 /*
-	compute the first-to-last map using binary search
+  compute the first-to-last map using binary search
 */
 ulong fl_map(fm_index *s, ulong row, uchar ch) {
 
@@ -294,7 +303,7 @@ ulong fl_map(fm_index *s, ulong row, uchar ch) {
     else {
       ch_b=0;                        // get remapped code for ch
       for(i=0;i<ch;i++)                  
-	if(s->bool_map_sb[i]) ch_b++;
+  if(s->bool_map_sb[i]) ch_b++;
       assert(ch_b<s->alpha_size_sb);
       n = occ_sb[ch] + occ_b[ch_b];  // # of occ of ch in [0,middle]
     }
@@ -305,9 +314,9 @@ ulong fl_map(fm_index *s, ulong row, uchar ch) {
       first=middle+1;
     else {                      // there are exactly "rank" c's in [0,middle]
       if(c_sb==ch) 
-	first=last=middle;      // found!
+  first=last=middle;      // found!
       else 
-	last=middle;            // restrict to [first,middle)
+  last=middle;            // restrict to [first,middle)
     }
   }
   // first is the desired row in the last column
@@ -330,95 +339,95 @@ uchar get_firstcolumn_char(fm_index *s, ulong row)
 }
 
 int display(void *indexe, uchar *pattern, ulong length, ulong nums, ulong *numocc, 
-			uchar **snippet_text, ulong **snippet_len) {
+      uchar **snippet_text, ulong **snippet_len) {
 
-	multi_count *groups;
-	int i, num_groups = 0, error;
-	uchar *snippets;
-	ulong *snip_len, j, h, len;
-	fm_index * index = (fm_index *) indexe;
+  multi_count *groups;
+  int i, num_groups = 0, error;
+  uchar *snippets;
+  ulong *snip_len, j, h, len;
+  fm_index * index = (fm_index *) indexe;
 
-	*numocc = 0;
-	len = length + 2*nums;
+  *numocc = 0;
+  len = length + 2*nums;
 
-	if(index->smalltext) { //uses Boyer-Moore algorithm
-		ulong *occ, to, numch, k;
-		int error = fm_boyermoore(index, pattern, length, &occ, numocc);
-		if(error<0) return error;
-		snip_len = (ulong *) malloc (sizeof (ulong) * (*numocc));
-		if (snip_len == NULL)
-			return FM_OUTMEM;
-		
-		
-		*snippet_text = (uchar *) malloc (sizeof (uchar) * len *(*numocc));
-		snippets = *snippet_text;
-		
-		if (snippets == NULL)
-			return FM_OUTMEM;
-		
-		for(k=0;k<*numocc;k++) {
-			if(occ[k]<nums) 
-				to = 0;
-			else 
-				to = occ[k]-nums;
-				
-			if(occ[k]+nums+length-1>index->text_size-1) 
-				numch =  index->text_size - to;
-			else 
-				numch = occ[k]+nums+length-to;
-				
-			memcpy(snippets, index->text+to, numch);
-			snip_len[k] = numch;
-			snippets += numch;
-		}
-		
-		free(occ);
-		*snippet_len = snip_len;
-		return FM_OK;
-	}
-		
+  if(index->smalltext) { //uses Boyer-Moore algorithm
+    ulong *occ, to, numch, k;
+    int error = fm_boyermoore(index, pattern, length, &occ, numocc);
+    if(error<0) return error;
+    snip_len = (ulong *) malloc (sizeof (ulong) * (*numocc));
+    if (snip_len == NULL)
+      return FM_OUTMEM;
+    
+    
+    *snippet_text = (uchar *) malloc (sizeof (uchar) * len *(*numocc));
+    snippets = *snippet_text;
+    
+    if (snippets == NULL)
+      return FM_OUTMEM;
+    
+    for(k=0;k<*numocc;k++) {
+      if(occ[k]<nums) 
+        to = 0;
+      else 
+        to = occ[k]-nums;
+        
+      if(occ[k]+nums+length-1>index->text_size-1) 
+        numch =  index->text_size - to;
+      else 
+        numch = occ[k]+nums+length-to;
+        
+      memcpy(snippets, index->text+to, numch);
+      snip_len[k] = numch;
+      snippets += numch;
+    }
+    
+    free(occ);
+    *snippet_len = snip_len;
+    return FM_OK;
+  }
+    
 
-	/* count */
-	num_groups = fm_multi_count (index, pattern, length, &groups);
+  /* count */
+  num_groups = fm_multi_count (index, pattern, length, &groups);
 
-	if (num_groups <= 0)
-		return num_groups;
+  if (num_groups <= 0)
+    return num_groups;
 
-	for (i = 0; i < num_groups; i++)
-		*numocc += groups[i].elements;
+  for (i = 0; i < num_groups; i++)
+    *numocc += groups[i].elements;
 
-	snip_len = (ulong *) malloc (sizeof (ulong) * (*numocc));
-	if (snip_len == NULL)
-		return FM_OUTMEM;
+  snip_len = (ulong *) malloc (sizeof (ulong) * (*numocc));
+  if (snip_len == NULL)
+    return FM_OUTMEM;
 
-	snippets = (uchar *) malloc (sizeof (uchar) * len *(*numocc));
-	if (snippets == NULL)
-		return FM_OUTMEM;
-	
-	h = 0;
-	for (i = 0; i < num_groups; i++)
-	{
-		
-		for(j=0; j<groups[i].elements; j++) {
-	
-			error = 
-			fm_snippet(index, groups[i].first_row + j, length, nums, 
-						snippets + h*len, &(snip_len[h]));
-		
-			if (error < 0)
-			{
-				free(snippets);
-				free(snip_len);
-				return error;
-			}
-			h++;	
-		}
-	}
-	
-	*snippet_text = snippets;
-	*snippet_len = snip_len;
-	free (groups);
-	return FM_OK;
+  snippets = (uchar *) malloc (sizeof (uchar) * len *(*numocc));
+  if (snippets == NULL)
+    return FM_OUTMEM;
+  
+  h = 0;
+  for (i = 0; i < num_groups; i++)
+  {
+    
+    for(j=0; j<groups[i].elements; j++) {
+  
+      error = 
+      fm_snippet(index, groups[i].first_row + j, length, nums, 
+            snippets + h*len, &(snip_len[h]));
+    
+      if (error < 0)
+      {
+        free(snippets);
+        free(snip_len);
+        return error;
+      }
+      h++;  
+    }
+  }
+  
+  *snippet_text = snippets;
+  *snippet_len = snip_len;
+  free (groups);
+  return FM_OK;
 
 }
 
@@ -430,10 +439,10 @@ int display(void *indexe, uchar *pattern, ulong length, ulong nums, ulong *numoc
 */
    
 int fm_snippet(fm_index *s, ulong row, ulong plen, ulong clen, uchar *dest, 
-			   ulong *snippet_length) {
+         ulong *snippet_length) {
 
   ulong back, forw, i;
-			   	
+          
   /* --- get clen chars preceding the current position --- */
   back = go_back(s, row, clen, dest+clen);
   assert(back <= clen);
@@ -457,77 +466,77 @@ int fm_snippet(fm_index *s, ulong row, ulong plen, ulong clen, uchar *dest,
    Output
      s->numbucs, s->buclist
 */
-int read_prologue(fm_index *s)
-{
+int read_prologue(fm_index *s) {
   bucket_lev1 *sb;  
   ulong i, k, offset;
-	  
+    
   /* alloc superbuckets */
   s->buclist_lev1 = (bucket_lev1 *) malloc(s->num_bucs_lev1 * sizeof(bucket_lev1));
-  if(s->buclist_lev1==NULL) return FM_OUTMEM; 
+  if(s->buclist_lev1==NULL)  { return FM_OUTMEM; }
 
   /* alloc aux array for each superbucket */
-  for(i=0; i< s->num_bucs_lev1; i++){
+  for(i=0; i < s->num_bucs_lev1; i++) {
     sb = &(s->buclist_lev1[i]);
 
     /* allocate space for array of occurrences */
     sb->occ = (ulong *) malloc((s->alpha_size)* sizeof(ulong));
-	if(sb->occ==NULL) return FM_OUTMEM;
+    if(sb->occ==NULL) { return FM_OUTMEM; }
 
     /* allocate space for array of boolean char map */
-    sb->bool_char_map = (uchar *)malloc((s->alpha_size)*sizeof(uchar));
-	if(sb->bool_char_map == NULL) return FM_OUTMEM;
+    sb->bool_char_map = (uchar *) malloc((s->alpha_size)*sizeof(uchar));
+    if(sb->bool_char_map == NULL) { return FM_OUTMEM; }
   }  
-	
+  
   offset = s->start_prologue_info_sb;
    
-  for(i=0; i<s->num_bucs_lev1; i++) {
+  for(i=0; i < s->num_bucs_lev1; i++) {
     sb = &(s->buclist_lev1[i]);
- 	fm_init_bit_reader(s->compress + offset);
+    fm_init_bit_reader(s->compress + offset);
   
-    for(k=0; k<s->alpha_size; k++)     /* boolean char_map */
+    for(k=0; k < s->alpha_size; k++) {    /* boolean char_map */
       sb->bool_char_map[k] = fm_bit_read(1);
-
-   	if(i>0)   {                         // read prefix-occ 
-      	for(k=0;k<s->alpha_size;k++) 
-	  		memcpy(sb->occ, s->compress + offset + s->sb_bitmap_size, s->alpha_size*sizeof(ulong));
-		offset += (s->alpha_size * sizeof(ulong) + s->sb_bitmap_size);
-	} else offset += s->sb_bitmap_size;
-	  
+    }
+    if(i > 0) {                         // read prefix-occ 
+      for(k=0;k < s->alpha_size;k++) {
+        memcpy(sb->occ, s->compress + offset + s->sb_bitmap_size, s->alpha_size*sizeof(ulong));
+      }
+      offset += (s->alpha_size * sizeof(ulong) + s->sb_bitmap_size);
+    } else { 
+      offset += s->sb_bitmap_size;
+    }
   }
 
   /* alloc array for the starting positions of the buckets */
   s->start_lev2 =  (ulong *) malloc((s->num_bucs_lev2)* sizeof(ulong));
-  if(s->start_lev2 == NULL) return FM_OUTMEM;
+  if(s->start_lev2 == NULL) { return FM_OUTMEM; }
  
   fm_init_bit_reader(s->compress + s->start_prologue_info_b);
   
   /* read the start positions of the buckets */
-  for(i=0;i<s->num_bucs_lev2;i++) 
+  for(i=0;i<s->num_bucs_lev2;i++) {
     s->start_lev2[i] = fm_bit_read(s->var_byte_rappr);
-  
+  }
   return FM_OK;
 }  
 
 
 /* 
-   	retrieve the bwt by uncompressing the data in the input file
-   	Output
-     	s->bwt  
+    retrieve the bwt by uncompressing the data in the input file
+    Output
+      s->bwt  
 */ 
-int uncompress_data(fm_index *s)
-{
+int uncompress_data(fm_index *s) {
   int uncompress_superbucket(fm_index *s, ulong numsb, uchar *out);
   ulong i;
   int error;
 
   s->bwt = (uchar *) malloc(s->text_size);
-  if(s->bwt == NULL)
-    	return FM_OUTMEM;
- 
-  for(i=0; i < s->num_bucs_lev1; i++){
-    	error = uncompress_superbucket(s, i, s->bwt+i*s->bucket_size_lev1);
-  		if(error < 0) return error;
+  if(s->bwt == NULL) {
+      return FM_OUTMEM;
+  }
+  for(i=0; i < s->num_bucs_lev1; i++) {
+      error = uncompress_superbucket(s, i, s->bwt+i*s->bucket_size_lev1);
+      if(error < 0) { return error; }
   }
   
   return FM_OK;
@@ -539,103 +548,108 @@ int uncompress_data(fm_index *s)
    in the array out[] which should be of the appropriate size  
    (i.e. s->bucket_size_lev1 unless num is the last superbucket) 
 */
-int uncompress_superbucket(fm_index *s, ulong numsb, uchar *out)
-{
+int uncompress_superbucket(fm_index *s, ulong numsb, uchar *out) {
   bucket_lev1 sb;  
   uchar *dest, c;
   ulong sb_start, sb_end, start,  b2, temp_occ[s->alpha_size];
   int i, k, error, len, is_odd, temp_len;
  
   assert(numsb<s->num_bucs_lev1);
-  sb = s->buclist_lev1[numsb];    	/* current superbucket */
+  sb = s->buclist_lev1[numsb];      /* current superbucket */
   sb_start = numsb*s->bucket_size_lev1;/* starting position of superbucket */
   sb_end = MIN(sb_start+s->bucket_size_lev1, s->text_size);    
   b2 = sb_start/s->bucket_size_lev2; /* initial level 2 bucket */
-	
+  
   s->alpha_size_sb = 0;                /* build inverse char map for superbucket */
-  for(k=0; k<s->alpha_size; k++) 
-    if(sb.bool_char_map[k]) 
+  for(k=0; k<s->alpha_size; k++) {
+    if(sb.bool_char_map[k]) {
       s->inv_map_sb[s->alpha_size_sb++] = k;
-
+    }
+  }
   for(start=sb_start; start < sb_end; start += s->bucket_size_lev2, b2++) {
    
-	len = MIN(s->bucket_size_lev2, sb_end-start); // length of bucket
+    len = MIN(s->bucket_size_lev2, sb_end-start); // length of bucket
     dest = out + (start - sb_start);                       
-	
-	fm_init_bit_reader((s->compress) + s->start_lev2[b2]); // go to start of bucket
-  	is_odd = 0;
-  	if((b2%2 == 0) && (start != sb_start) && (b2 != s->num_bucs_lev2-1))
-		is_odd = 1; 
-	
-    if((start != sb_start) && (!is_odd)) // if not the first bucket and not odd skip occ
-      for(k=0; k<s->alpha_size_sb; k++) 
+  
+    fm_init_bit_reader((s->compress) + s->start_lev2[b2]); // go to start of bucket
+    is_odd = 0;
+    if((b2%2 == 0) && (start != sb_start) && (b2 != s->num_bucs_lev2-1)) {
+      is_odd = 1; 
+    }
+    if((start != sb_start) && (!is_odd)) {// if not the first bucket and not odd skip occ
+      for(k=0; k < s->alpha_size_sb; k++) {
          error = fm_integer_decode(s->int_dec_bits); /* non servono se non mtf2 */
-	
-	/* Compute bucket inv map */
-  	s->alpha_size_b = 0;
-    for(i=0; i< s->alpha_size_sb;i++)     
-      if( fm_bit_read(1) ) 
-		  s->inv_map_b[s->alpha_size_b++] = i;
-	  
-	assert(s->alpha_size_sb >= s->alpha_size_b);
+      }
+    }
+    /* Compute bucket inv map */
+    s->alpha_size_b = 0;
+    for(i=0; i < s->alpha_size_sb;i++) {
+      if( fm_bit_read(1) ) {
+        s->inv_map_b[s->alpha_size_b++] = i;
+      }
+    }
+    assert(s->alpha_size_sb >= s->alpha_size_b);
 
     /* Applies the proper decompression routine */
-    switch (s->type_compression) 
-	{
+    switch (s->type_compression) {
       case MULTIH: /* Bzip compression of mtf-ranks */
-    	/* Initialize Mtf start */
-		for (i = 0; i < s->alpha_size_b; i++)
-			s->mtf[i] = i;
-		if(is_odd)
-			temp_len = 0;
-		else 
-			temp_len = len-1;
-		
-		get_b_multihuf(temp_len, temp_occ, s, is_odd); /* temp_occ is not needed 
-	  											       get_b_m modify s->mtf_seq */
-	 	break;
+        /* Initialize Mtf start */
+        for (i = 0; i < s->alpha_size_b; i++) {
+          s->mtf[i] = i;
+        }
+        if(is_odd) {
+          temp_len = 0;
+        } else { 
+          temp_len = len-1;
+        }
+        get_b_multihuf(temp_len, temp_occ, s, is_odd); /* temp_occ is not needed 
+                                   get_b_m modify s->mtf_seq */
+        break;
 
-  	  default:  
-			return FM_COMPNOTSUP;
-      }
+      default:  
+        return FM_COMPNOTSUP;
+    }
 
     /* remap the bucket according to the superbucket s->inv_map_sb */
-    for(i=0; i<len; i++) { 
+    for(i=0; i < len; i++) { 
       assert(s->mtf_seq[i] < s->alpha_size_sb);
-	  c = s->inv_map_sb[s->mtf_seq[i]]; /* compute remapped char */
+      c = s->inv_map_sb[s->mtf_seq[i]]; /* compute remapped char */
       assert(c < s->alpha_size);          
-      if (is_odd) dest[len-(i+1)] = c;	/* reverse this is an odd bucket */
-	  else dest[i] = c;                      
-    } 
-	}
-	return FM_OK;
+      if (is_odd) { 
+        dest[len - (i+1)] = c;  /* reverse this is an odd bucket */
+      } else {
+        dest[i] = c;
+      }
+    }
+  } // end for start
+  return FM_OK;
 }
 
 
 /*
-	compute the lf mapping (see paper)
-   	Input
-    	 s->bwt, s->bwt_occ[], s->text_size, s->alpha_size
-   	Output
-    	 s->lf   
+  compute the lf mapping (see paper)
+    Input
+       s->bwt, s->bwt_occ[], s->text_size, s->alpha_size
+    Output
+       s->lf   
 */  
-int fm_compute_lf(fm_index * s)
-{
+int fm_compute_lf(fm_index * s) {
   ulong i, occ_tmp[ALPHASIZE];
 
   /* alloc memory */
   s->lf = (ulong *) malloc(s->text_size*sizeof(ulong));
-  if(s->lf == NULL)
+  if(s->lf == NULL) {
     return FM_OUTMEM;
+  }
 
   /* copy bwt_occ */
-  for(i=0;i<ALPHASIZE;i++)
+  for(i=0;i < ALPHASIZE;i++) {
     occ_tmp[i] = s->bwt_occ[i];
-
+  }
   /* now computes lf mapping */
-  for(i=0;i<s->text_size;i++)
+  for(i=0;i<s->text_size;i++) {
     s->lf[i] = occ_tmp[s->bwt[i]]++;
-  
+  }
   return FM_OK;
 }
 
@@ -647,42 +661,44 @@ int fm_compute_lf(fm_index * s)
    Output
      s->text
 */    
-int fm_invert_bwt(fm_index *s)
-{
+int fm_invert_bwt(fm_index *s) {
   ulong j, i, real_text_size;
-	
-  if(s->skip>1) real_text_size = s->text_size-s->num_marked_rows;
-  else  
-	  real_text_size = s->text_size; 
-	  
+  
+  if(s->skip > 1) {
+    real_text_size = s->text_size-s->num_marked_rows;
+  } else {  
+    real_text_size = s->text_size; 
+  }
   /* alloc memory */
   s->text = (uchar *) malloc(real_text_size*sizeof(uchar));
-  if(s->text == NULL)
+  if(s->text == NULL) {
     return FM_OUTMEM;
-
-  for(j=0, i=real_text_size-1; i>0; i--) {
-	if((s->skip<=1) || (s->bwt[j] != s->specialchar)) 
-	  s->text[i] = s->bwt[j];
-	else i++;
-	
+  }
+  for(j=0, i=real_text_size-1; i > 0; i--) {
+    if((s->skip <= 1) || (s->bwt[j] != s->specialchar)) {
+      s->text[i] = s->bwt[j];
+    } else { 
+      i++;
+    }
+  
     j = s->lf[j];              // No account for EOF
 
-    assert(j<s->text_size);
+    assert(j < s->text_size);
 
-    if(j<s->bwt_eof_pos) j++; // EOF is not accounted in c[] and thus lf[]
+    if(j < s->bwt_eof_pos) { j++; } // EOF is not accounted in c[] and thus lf[]
                               // reflects the matrix without the first row.
                               // Since EOF is not coded, the lf[] is correct
                               // after bwt_eof_pos but it is -1 before.
                               // The ++ takes care of this situation.
-	
-  }
+  
+  } // end for
   
   //fprintf(stderr, "mark %lu realsiz %lu i %lu j %lu eof %lu size %lu\n",s->num_marked_rows, real_text_size, i, s->lf[j], s->bwt_eof_pos, real_text_size); 
   /* i == 0 */
   s->text[i] = s->bwt[j];
-  assert(j<s->text_size);
+  assert(j < s->text_size);
   j = s->lf[j];              // No account for EOF
-  if(j<s->bwt_eof_pos) j++;
+  if(j < s->bwt_eof_pos) { j++; }
 
   assert(j==s->bwt_eof_pos);
   free(s->lf); s->lf = NULL;
@@ -692,55 +708,57 @@ int fm_invert_bwt(fm_index *s)
 
 
 static void free_unbuild_mem(fm_index *s) { 
-	ulong i;
-	bucket_lev1 *sb;
-	
-	free(s->start_lev2);
+  ulong i;
+  bucket_lev1 *sb;
+  
+  free(s->start_lev2);
 
-	for(i=0; i< s->num_bucs_lev1; i++) {
-		sb = &(s->buclist_lev1[i]);
-		free(sb->occ);
-		free(sb->bool_char_map);
-	}
-	free(s->buclist_lev1);
+  for(i=0; i< s->num_bucs_lev1; i++) {
+    sb = &(s->buclist_lev1[i]);
+    free(sb->occ);
+    free(sb->bool_char_map);
+  }
+  free(s->buclist_lev1);
 }
 
 
 int fm_unbuild(fm_index *s, uchar ** text, ulong *length) {
-	
-	int error;
-	ulong  i;
-	if ((error = read_prologue(s)) < 0 ) {
-			free_unbuild_mem(s);
-			return error;
-	}
-	if ((error = uncompress_data(s)) < 0 ) {
-			free_unbuild_mem(s);
-			return error;
-	}
-	if ((error = fm_compute_lf(s)) < 0 ) {
-			free_unbuild_mem(s);
-			return error;
-	}
+  
+  int error;
+  ulong  i;
+  if ((error = read_prologue(s)) < 0 ) {
+      free_unbuild_mem(s);
+      return error;
+  }
+  if ((error = uncompress_data(s)) < 0 ) {
+      free_unbuild_mem(s);
+      return error;
+  }
+  if ((error = fm_compute_lf(s)) < 0 ) {
+      free_unbuild_mem(s);
+      return error;
+  }
 
-	if ((error = fm_invert_bwt(s)) < 0 ) {
-			free_unbuild_mem(s);
-			return error;
-	}
+  if ((error = fm_invert_bwt(s)) < 0 ) {
+      free_unbuild_mem(s);
+      return error;
+  }
 
-	ulong real_text_size;
-    if(s->skip>1) real_text_size = s->text_size-s->num_marked_rows;
-  	else real_text_size = s->text_size;
-		
-	/* remap text */	
-	for(i=0; i<real_text_size; i++) {
-		if(s->text[i] == s->specialchar) s->text[i] = s->subchar;
-    	s->text[i] = s->inv_char_map[s->text[i]];
-	}
-	*text = s->text;
-	s->text = NULL;
-	free_unbuild_mem(s); /* libera memoria allocata */
+  ulong real_text_size;
+  if(s->skip>1) {
+    real_text_size = s->text_size-s->num_marked_rows;
+  } else { 
+    real_text_size = s->text_size;
+  }
+  /* remap text */  
+  for(i=0; i < real_text_size; i++) {
+    if(s->text[i] == s->specialchar) { s->text[i] = s->subchar; }
+    s->text[i] = s->inv_char_map[s->text[i]];
+  }
+  *text = s->text;
+  s->text = NULL;
+  free_unbuild_mem(s); /* libera memoria allocata */
 
-	*length = real_text_size;
-	return FM_OK;
+  *length = real_text_size;
+  return FM_OK;
 }
