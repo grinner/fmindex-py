@@ -48,11 +48,11 @@ measures Test;
 int fm_build_config (fm_index *index, suint tc, suint freq, 
                             ulong bsl1, ulong bsl2, suint owner) {
                 
-    bsl1 = bsl1<<10;
+    bsl1 = bsl1 << 10;
     /* Checks */
     if ( tc != MULTIH ) { return FM_COMPNOTSUP; }
     if (bsl2 > 4096) { return FM_CONFERR; }
-    if (bsl1%bsl2) { return FM_CONFERR; }
+    if (bsl1 % bsl2) { return FM_CONFERR; }
     
     index->owner = owner;
     index->type_compression = tc;
@@ -148,15 +148,15 @@ int build_index(uchar *text, ulong length, char *build_options, void **indexe) {
     int error;
     fm_index *index;
     index = (fm_index *) malloc(sizeof(fm_index));
-    if(index == NULL) return FM_OUTMEM;
+    if(index == NULL) { return FM_OUTMEM; }
     
     error = parse_options(index, build_options);
-    if (error < 0) return error;
+    if (error < 0) { return error; }
         
     error = fm_build(index, text, length);
     if (error < 0) {
-            free(index);
-            return error;
+        free(index);
+        return error;
     }
     
     *indexe = index;
@@ -321,7 +321,7 @@ int fm_build(fm_index *index, uchar *text, ulong length) {
     index->start_positions = index->compress_size;
          
     /* write marked chars */
-    if (index->skip>0) {
+    if (index->skip > 0) {
         write_locations(index);
     }
     if(TESTINFO) { fprintf(stderr,"Write locations done\n"); }
@@ -377,35 +377,38 @@ static int select_subchar(fm_index *s) {
     ulong i, newtextsize, pos;
     suint mappa[ALPHASIZE];
     s->subchar = 0; // useless in this version
-    if (s->text_size <= s->skip) s->skip=1;
+    if (s->text_size <= s->skip) { s->skip=1; }
     s->oldtext = NULL;
     
     if (s->skip == 1) {
         s->num_marked_rows  = s->text_size;
         return FM_OK;
-        }
+    }
     if (s->skip == 0)  {
         s->num_marked_rows = 0;
         return FM_OK;
-        }
+    }
 
     /* Check if there is a character not present in the text */ 
-    for(i=0; i < ALPHASIZE; i++) 
+    for(i=0; i < ALPHASIZE; i++) {
         mappa[i] = 0;
+    }
     
-    for(i=0; i < s->text_size;i++) 
+    for(i=0; i < s->text_size;i++) {
         mappa[s->text[i]] = 1;
+    }
 
-    for(i=0; i < ALPHASIZE; i++) 
+    for(i=0; i < ALPHASIZE; i++) {
         if (!mappa[i]) {
             s->specialchar = i; /* New character added */
             break;
+        }
     }
     
     if(i==ALPHASIZE) {
-            fprintf(stderr,"256 chars I cannot insert a new chars. I mark all positions\n");
-            s->num_marked_rows  = s->text_size; s->skip = 1;
-            return FM_OK;
+        fprintf(stderr,"256 chars I cannot insert a new chars. I mark all positions\n");
+        s->num_marked_rows  = s->text_size; s->skip = 1;
+        return FM_OK;
     }
     int overshoot;
 
@@ -414,22 +417,22 @@ static int select_subchar(fm_index *s) {
     overshoot = init_ds_ssort(500, 2000);
     
     uchar * text = malloc(overshoot+newtextsize);
-    if (!text) return FM_OUTMEM;
+    if (!text) { return FM_OUTMEM; }
     
     for(i=0,pos = 0;i < s->num_marked_rows; i++, pos += s->skip) {
-        if (pos) text[pos++] = s->specialchar;
+        if (pos) { text[pos++] = s->specialchar; }
         memcpy(text+pos, s->text+pos-i, s->skip);       
-        }
+    }
     ulong offset = s->text_size - (pos - i)-1;
-    if(offset){
-        if (pos) text[pos++] = s->specialchar;
+    if(offset) {
+        if (pos) { text[pos++] = s->specialchar; }
         memcpy(text+pos, s->text+pos-i, offset);
     }
     
     if (s->owner == 1)  { 
         free(s->text); 
         s->oldtext = NULL;
-    } else s->oldtext = s->text;
+    } else { s->oldtext = s->text; }
 
     s->text = text;
     s->text_size = newtextsize;
@@ -451,8 +454,9 @@ static int select_subchar(fm_index *s) {
 int build_sa(fm_index *s) { 
     
   s->lf = malloc(s->text_size * sizeof(ulong));
-  if (s->lf == NULL) 
-        return FM_OUTMEM;
+  if (s->lf == NULL) {
+      return FM_OUTMEM;
+  }
 
   /* compute Suffix Array with library */  
   ds_ssort(s->text, (int*) s->lf, s->text_size);
@@ -500,7 +504,7 @@ void count_occ(fm_index *s) {
     
     /* Compute prefix sum of char occ */
     ulong temp, sum = 0;
-    for(i=0; i<s->alpha_size; i++) {
+    for(i=0; i < s->alpha_size; i++) {
         temp = s->pfx_char_occ[i];
         s->pfx_char_occ[i] = sum; 
         sum += temp;
@@ -526,25 +530,26 @@ int build_bwt(fm_index *s) {
   
   /* alloc memory for bwt */
   s->bwt = malloc(s->text_size*sizeof(uchar));
-  if(s->bwt==NULL)
-            return FM_OUTMEM;
-  
+  if(s->bwt==NULL) {
+      return FM_OUTMEM;
+  }
   s->bwt[0] = s->text[s->text_size-1];  //L[0] = Text[n-1]
 
   /* not till the EOF meeting the bwt and 'more' forward one element 
       after indices knows bwt and return the same.
   */
   
-  ulong *sa = s->lf;             // points to the first element
-  uchar *bwt = &(s->bwt[1]);     // points to the second element
-  for(i=0; i<s->text_size; i++) {  // not readable but more performance 
-    if(*sa !=0 ){                // in place of *bwt was s->bwt[j++] with j=1
-      *bwt = s->text[(*sa)-1];   // in place of *safix s->lf[i]
+  ulong *sa = s->lf;                // points to the first element
+  uchar *bwt = &(s->bwt[1]);        // points to the second element
+  for(i=0; i < s->text_size; i++) { // not readable but more performance 
+    if(*sa !=0 ){                   // in place of *bwt was s->bwt[j++] with j=1
+      *bwt = s->text[(*sa)-1];      // in place of *safix s->lf[i]
       bwt++; 
-    } else
+    } else {
       s->bwt_eof_pos = i; // EOF is not written but its position remembered !   
-    sa++;
     }
+    sa++;
+  }
 
    return FM_OK;    
 }
@@ -557,31 +562,32 @@ int compute_locations(fm_index *s) {
     ulong i,j; /* number marked positions */
     ulong firstrow = s->pfx_char_occ[s->char_map[s->specialchar]];
 
-    if( (s->skip==0)|| (s->skip == 1)) 
+    if( (s->skip==0) || (s->skip == 1)) {
         return FM_OK;
+    }
     ulong real_text_size = s->text_size-s->num_marked_rows;
     /* alloc s->loc_occ */
     s->loc_occ = malloc(sizeof(ulong) * s->num_marked_rows);
-    if (s->loc_occ == NULL) return FM_OUTMEM;
+    if (s->loc_occ == NULL) { return FM_OUTMEM; }
     s->loc_row = malloc(sizeof(ulong) * real_text_size/s->skip);
-    if (s->loc_row == NULL) return FM_OUTMEM;
+    if (s->loc_row == NULL) { return FM_OUTMEM; }
         
     for(i=firstrow,j=firstrow; i<(s->num_marked_rows+firstrow); i++,j++) {
-                    //if(s->lf[i] == 0) { PLEASE FIX ME
-                    //  j++;
-                    //  continue;
-                    //  }
-                    s->loc_occ[i-firstrow] = s->lf[j];  
-                }
+        //if(s->lf[i] == 0) { PLEASE FIX ME
+        //  j++;
+        //  continue;
+        //  }
+        s->loc_occ[i-firstrow] = s->lf[j];  
+    }
     ulong curpos;
     ulong p =0;
-    for(i=0;i<s->text_size;i++) { 
-        if((i>=firstrow)&&(i<firstrow+s->num_marked_rows)) continue;
-        if(s->lf[i]==0) continue;
-        curpos = s->lf[i]-(s->lf[i]/(s->skip+1));
+    for(i=0;i < s->text_size;i++) { 
+        if( (i >= firstrow) && (i < firstrow+s->num_marked_rows) ) { continue; }
+        if(s->lf[i]==0) { continue; }
+        curpos = s->lf[i] - (s->lf[i]/(s->skip + 1));
         if(curpos%s->skip==0) {
-                    p++;
-                    s->loc_row[curpos/s->skip-1] = i; //(i < s->bwt_eof_pos) ? i+1 :  i;
+            p++;
+            s->loc_row[curpos/s->skip-1] = i; //(i < s->bwt_eof_pos) ? i+1 :  i;
         }
     }
     
@@ -595,8 +601,7 @@ int compute_locations(fm_index *s) {
     occ[], alpha_size, bool_char_map[]
 */             
 
-int compute_info_superbuckets(fm_index *s)
-{
+int compute_info_superbuckets(fm_index *s) {
   ulong b, temp, occ, k, i;
   bucket_lev1 * sb;
   
@@ -608,25 +613,27 @@ int compute_info_superbuckets(fm_index *s)
   if(s->buclist_lev1==NULL) return FM_OUTMEM; 
                 
   /* alloc aux array for each superbucket */
-  for(i=0; i< s->num_bucs_lev1; i++) {
+  for(i=0; i < s->num_bucs_lev1; i++) {
     sb = &(s->buclist_lev1[i]);   // sb points to current superbucket
 
     /* Allocate space for data structures */
     sb->occ = malloc((s->alpha_size)* sizeof(ulong));
-    if(sb->occ == NULL) 
-            return FM_OUTMEM;
-    
+    if(sb->occ == NULL) {
+        return FM_OUTMEM;
+    }    
     sb->bool_char_map = malloc((s->alpha_size)*sizeof(suint));
-    if(sb->bool_char_map == NULL) 
-            return FM_OUTMEM;
+    if(sb->bool_char_map == NULL) {
+        return FM_OUTMEM;
+    }
 
     /* Initialize data structures */
     sb->alpha_size = 0;    
-    for(k=0; k<s->alpha_size; k++){
+    for(k=0; k < s->alpha_size; k++) {
       sb->bool_char_map[k] = 0;
-      sb->occ[k] = 0;}
+      sb->occ[k] = 0;
+    }
     
-  }  
+  } // end for
   
   /* scan bwt and gather information */
   
@@ -637,19 +644,19 @@ int compute_info_superbuckets(fm_index *s)
   for(i=0; i < s->text_size; i++) {
     
       if ( i == dim ) {  // NOT DIVIDE are in order
-                 currentBuck++;
-                 dim += s->bucket_size_lev1;
-                 sb = &(s->buclist_lev1[currentBuck]);
-                 }
+         currentBuck++;
+         dim += s->bucket_size_lev1;
+         sb = &(s->buclist_lev1[currentBuck]);
+      }
                   
-    k = s->bwt[i];                 // current char
+      k = s->bwt[i];                 // current char
              
-    if(sb->bool_char_map[k]==0) { // build char_map of current sb
-      sb->bool_char_map[k] = 1; 
-      sb->occ[k] = 0;
-      sb->alpha_size++;           // compute alphabet size
-    }
-    sb->occ[k]++;
+      if(sb->bool_char_map[k]==0) { // build char_map of current sb
+          sb->bool_char_map[k] = 1; 
+          sb->occ[k] = 0;
+          sb->alpha_size++;           // compute alphabet size
+      }
+      sb->occ[k]++;
   }
 
   /* compute occ in previous buckets */
@@ -657,7 +664,7 @@ int compute_info_superbuckets(fm_index *s)
     occ = 0;
     for(b=0; b < s->num_bucs_lev1; b++) {   // prefix sum on OCC
       temp = s->buclist_lev1[b].occ[k];
-      s->buclist_lev1[b].occ[k]=occ;
+      s->buclist_lev1[b].occ[k] = occ;
       occ += temp;
       
       #if TESTINFO
@@ -681,8 +688,9 @@ int compute_info_buckets(fm_index *s) {
 
   /* alloc array for buckets starting positions */
   s->start_lev2 =  malloc((s->num_bucs_lev2)* sizeof(ulong));
-  if(s->start_lev2==NULL) 
-        return FM_OUTMEM;
+  if(s->start_lev2==NULL) {
+      return FM_OUTMEM;
+  }
   return FM_OK;   
 }
 
@@ -729,7 +737,7 @@ void write_prologue(fm_index *s) {
   fm_bit_write24(8, s->type_compression);
   fm_uint_write(s->bwt_eof_pos);
 
-  assert(s->bucket_size_lev1>>10<65536);
+  assert(s->bucket_size_lev1>>10 < 65536);
   assert((s->bucket_size_lev1 & 0x3ff) == 0);
   fm_bit_write24(16, s->bucket_size_lev1>>10);
 
@@ -780,7 +788,7 @@ void write_prologue(fm_index *s) {
   }
 
   /* leave space for storing the start positions of buckets */
-  s->var_byte_rappr = ((s->log2textsize+7)/8)*8;   // it's byte-aligned
+  s->var_byte_rappr = ((s->log2textsize + 7)/8)*8;   // it's byte-aligned
  
   for(i=0;i < s->num_bucs_lev2;i++) {
     fm_bit_write(s->var_byte_rappr,0);
@@ -828,11 +836,11 @@ int compress_superbucket(fm_index *s, ulong num) {
     
   assert(temp==sb.alpha_size);
 
-  for(i=0; i<sb.alpha_size;i++) {           // init occ
+  for(i=0; i < sb.alpha_size;i++) {           // init occ
     bocc[i]=0;
   }
 
-  for(start=sb_start; start<sb_end; start+=s->bucket_size_lev2, b2++) {
+  for(start=sb_start; start < sb_end; start+=s->bucket_size_lev2, b2++) {
 
     s->start_lev2[b2] = s->compress_size; // start of bucket in compr file
 
@@ -840,7 +848,7 @@ int compress_superbucket(fm_index *s, ulong num) {
     in = s->bwt + start;  // start of bucket
     
     is_odd = 0;
-    if((b2%2 ==0) && (start != sb_start) && (b2 != s->num_bucs_lev2-1)) {
+    if((b2 % 2 ==0) && (start != sb_start) && (b2 != s->num_bucs_lev2-1)) {
         is_odd = 1; // decide which bucket overturned and do not put occ
     }
     if(start != sb_start) {     // if not the first bucket write occ to file
@@ -861,10 +869,10 @@ int compress_superbucket(fm_index *s, ulong num) {
     }
     
     for(j=0; j < len; j++) {          // update occ[] and remap
-        assert(in[j]< s->alpha_size); 
+        assert(in[j] < s->alpha_size); 
         c = char_map[in[j]];          // compute remapped char
         assert(c < sb.alpha_size);          
-        in[j]=c;                      // remap
+        in[j] = c;                      // remap
         bocc[c]++;                    // bocc is used in the next bucket
     }    
     
@@ -947,7 +955,7 @@ void write_locations(fm_index *s) {
     }
     
     /* Guarding replace char bit log2text_size*/
-    for(i=0; i<s->num_marked_rows;i++) {
+    for(i=0; i < s->num_marked_rows;i++) {
         fm_bit_write(s->log2textsize, (s->loc_occ[i] - (s->loc_occ[i]/(s->skip + 1))) - 1);
     }
     fm_bit_flush();
@@ -977,7 +985,7 @@ static void dealloc(fm_index *s) {
     if ((s->owner == 0) && (s->skip !=0)) {
         if (s->subchar != s->specialchar) { 
             int i;
-            for(i=0;i<s->alpha_size;i++) {
+            for(i=0;i < s->alpha_size;i++) {
                 if(s->text[i] == s->subchar) { s->text[i] = s->specialchar; }
             }
         }               
@@ -1019,7 +1027,7 @@ int save_index(void *indexe, char *filename) {
     char *outfile_name, *ext = EXT;
     
     outfile_name = (char *) malloc(strlen(filename)+strlen(ext)+1);
-    if (outfile_name == NULL) return FM_OUTMEM;
+    if (outfile_name == NULL) { return FM_OUTMEM; }
     outfile_name = strcpy(outfile_name, filename);
     outfile_name = strcat(outfile_name, ext);
     
@@ -1029,7 +1037,7 @@ int save_index(void *indexe, char *filename) {
         return FM_FILEERR;
     }
 
-        free(outfile_name);
+    free(outfile_name);
 
     ulong t = fwrite(index->compress, sizeof(uchar), index->compress_size, outfile);
     if(t != index->compress_size) {
@@ -1062,7 +1070,7 @@ int fm_read_file(char *filename, uchar **textt, ulong *length) {
   if(infile == NULL) { return FM_FILEERR; }
   
   /* store input file length */
-  if(fseek(infile,0,SEEK_END) !=0 ) { return FM_FILEERR; }
+  if(fseek(infile,0,SEEK_END) != 0 ) { return FM_FILEERR; }
   *length = ftell(infile);
   
   /* alloc memory for text (the overshoot is for suffix sorting) */
@@ -1072,7 +1080,7 @@ int fm_read_file(char *filename, uchar **textt, ulong *length) {
   /* read text in one sweep */
   rewind(infile);
   t = fread(text, sizeof(*text), (size_t) *length, infile);
-  if(t!=*length) { return FM_READERR; }
+  if(t != *length) { return FM_READERR; }
   *textt = text;
   fclose(infile);
   return FM_OK;
