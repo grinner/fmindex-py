@@ -48,15 +48,17 @@ from distutils.core import setup, Extension
 import numpy.distutils.misc_util
 import os
 from os.path import join as pjoin
+from os.path import relpath as rpath
 import sys
 import subprocess
 
 fmindexpy_path = os.path.abspath(os.path.dirname(__file__))
+package_path = pjoin(fmindexpy_path, 'fmindex')
 fmindex_version = 'V2'
-fmindex_home = pjoin(fmindexpy_path, "fmindex" + fmindex_version)
-ds_ssort_home = pjoin(fmindex_home, 'ds_ssort')
+fmindexV2_home = pjoin(fmindexpy_path, "fmindex" + fmindex_version)
+ds_ssort_home = pjoin(fmindexV2_home, 'ds_ssort')
 
-if not os.path.exists(fmindex_home):
+if not os.path.exists(fmindexV2_home):
     raise IOError("fmindex %s missing, please add to fmindexpy root directory" % 
         (fmindex_version))
 
@@ -69,23 +71,29 @@ if do_remake_fmindex:
     subprocess.check_call(["/bin/bash", "-c", 
       'cd %s; %s' % (ds_ssort_home, command)], **kwargs)
     subprocess.check_call(["/bin/bash", "-c", 
-      'cd %s; %s' % (fmindex_home, command)], **kwargs)
+      'cd %s; %s' % (fmindexV2_home, command)], **kwargs)
     
-objects_files = [pjoin(fmindex_home,'fm_index.a'),
+objects_files = [pjoin(fmindexV2_home,'fm_index.a'),
                     pjoin(ds_ssort_home, 'ds_ssort.a')]
 
 fmindex_ext = Extension('fmindex._fmindex',
                         depends=[],
                         sources=['fmindex/src/fmindex_py.c'],
                         extra_objects=objects_files,
-                        include_dirs=[fmindex_home, 
+                        include_dirs=[fmindexV2_home, 
                                     ds_ssort_home,
                                     'fmindex/src'],
                       )
 
+# Find all primer3 data files
+fmi_files = [rpath(pjoin(root, f), package_path) for root, _, files in
+            os.walk(fmindexV2_home) for f in files]
+
 setup(
     name=DISTNAME,
     maintainer=AUTHORS,
+    packages=['fmindex'],
+    package_data={'fmindex': fmi_files},
     ext_modules=[fmindex_ext],
     include_dirs=numpy.distutils.misc_util.get_numpy_include_dirs(),
     maintainer_email=EMAIL,
