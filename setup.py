@@ -55,7 +55,7 @@ import subprocess
 fmindexpy_path = os.path.abspath(os.path.dirname(__file__))
 package_path = pjoin(fmindexpy_path, 'fmindex')
 fmindex_version = 'V2'
-fmindexV2_home = pjoin(fmindexpy_path, "fmindex" + fmindex_version)
+fmindexV2_home = pjoin(package_path, "src", "fmindex" + fmindex_version)
 ds_ssort_home = pjoin(fmindexV2_home, 'ds_ssort')
 
 if not os.path.exists(fmindexV2_home):
@@ -88,7 +88,8 @@ fmindex_ext = Extension('fmindex._fmindex',
 # Find all primer3 data files
 fmi_files = [rpath(pjoin(root, f), package_path) for root, _, files in
             os.walk(fmindexV2_home) for f in files]
-
+fmi_files.append("_fmindex.so")
+# print(fmi_files)
 setup(
     name=DISTNAME,
     maintainer=AUTHORS,
