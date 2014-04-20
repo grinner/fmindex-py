@@ -77,7 +77,6 @@ objects_files = [pjoin(fmindexV2_home,'fm_index.a'),
                     pjoin(ds_ssort_home, 'ds_ssort.a')]
 
 fmindex_ext = Extension('fmindex._fmindex',
-                        depends=[],
                         sources=['fmindex/src/fmindex_py.c'],
                         extra_objects=objects_files,
                         include_dirs=[fmindexV2_home, 

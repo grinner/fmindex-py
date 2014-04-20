@@ -391,7 +391,7 @@ static PyMethodDef FMIndex_methods[] = {
 
 static PyTypeObject FMIndexType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "fmindex.FMIndex",              /*tp_name*/
+    "_fmindex.FMIndex",              /*tp_name*/
     sizeof(FMIndex),                /*tp_basicsize*/
     0,                              /*tp_itemsize*/
     (destructor)FMIndex_dealloc,    /*tp_dealloc*/
