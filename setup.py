@@ -84,11 +84,10 @@ fmindex_ext = Extension('fmindex._fmindex',
                                     'fmindex/src'],
                       )
 
-# Find all primer3 data files
+# Find all fmindex data files
 fmi_files = [rpath(pjoin(root, f), package_path) for root, _, files in
             os.walk(fmindexV2_home) for f in files]
-fmi_files.append("_fmindex.so")
-# print(fmi_files)
+
 setup(
     name=DISTNAME,
     maintainer=AUTHORS,
