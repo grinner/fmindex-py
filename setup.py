@@ -64,8 +64,8 @@ if not os.path.exists(fmindexV2_home):
 
 do_remake_fmindex = True
 if do_remake_fmindex:
-    command = "make"
-    # command = "make clean; make"
+    # command = "make"
+    command = "make clean; make"
     kwargs = {"timeout": 60 } if sys.version_info[0] == 3 else {}
     # will raise Error if doesn't work
     subprocess.check_call(["/bin/bash", "-c", 
