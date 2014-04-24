@@ -16,6 +16,21 @@ strain_files = ["Crooks_ATCC-8739.fasta",
                 "DH10B.fasta", 
                 "MG1655.fasta"]
 
+def levenshtein(s1, s2):
+    l1 = len(s1)
+    l2 = len(s2)
+
+    matrix = [i for i in range(l1 + 1)] * (l2 + 1)
+    for zz in range(l2 + 1):
+        matrix[zz] = [i for i in range(zz,zz + l1 + 1)]
+    for zz in range(0,l2):
+        for sz in range(0,l1):
+            if s1[sz] == s2[zz]:
+                matrix[zz+1][sz+1] = min(matrix[zz+1][sz] + 1, matrix[zz][sz+1] + 1, matrix[zz][sz])
+            else:
+                matrix[zz+1][sz+1] = min(matrix[zz+1][sz] + 1, matrix[zz][sz+1] + 1, matrix[zz][sz] + 1)
+    return matrix[l2][l1]
+# end def
 
 find_list = ["GG"]#, "CC", "AG", "CT"]
 potentials = []
@@ -106,11 +121,18 @@ newref = new_potentials[3]
 solutions = []
 for i in range(min_pam_length):
     seq = newref[i].group(0)
-    count = 0
+    count1 = 0
+    count2 = 0
+    seqtest_ref = None
     for p in new_potentials[0:3]:
-        if seq != p[i].group(0):
-            count += 1
-    if count == 3:
+        seqtest = p[i].group(0)
+        if seq != seqtest:
+            count1 += 1
+            if seqtest_ref is None:
+                seqtest_ref = seqtest
+            elif levenshtein(seqtest_ref, seqtest) < 3:
+                count2 += 1
+    if count1 == 3 and count2 == 2:
         solutions.append(i)
 
 print("a solution at ", i, "and total count:", len(solutions), "out of a possible:", min_pam_length)
