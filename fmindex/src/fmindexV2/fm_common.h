@@ -6,11 +6,14 @@
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #ifndef DATATYPE 
 typedef unsigned char uchar;
 #ifndef __USE_MISC
-typedef unsigned long ulong;
+// typedef unsigned long ulong;
+// Added NC (fmindexV2 is clearly designed for 32 bits for the ulong only)
+typedef uint32_t ulong;
 #endif
 #define DATATYPE 1
 #endif

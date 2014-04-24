@@ -261,19 +261,21 @@ int fm_build(fm_index *index, uchar *text, ulong length) {
     if (error < 0 ) {
         return errore(index, error);
     }
+
     if(TESTINFO) { fprintf(stderr,"Build BWT done\n"); }
-    
+
     if(index->skip > 1) { free(index->text); index->text = NULL;}
     else if(index->owner == 1) {
         free(index->text); 
         index->text = NULL;
     }
-    
+
     ulong i;
     /* Remap bwt */
     for(i=0; i < index->text_size; i++) {
         index->bwt[i] = index->char_map[index->bwt[i]];
     }
+
     /* Mark position */
     error = compute_locations(index); 
     if (error < 0) {
@@ -345,26 +347,27 @@ int fm_build(fm_index *index, uchar *text, ulong length) {
     }
     
     index->compress = realloc(index->compress, index->compress_size);
+
     dealloc(index);
     fm_use_index (index);
 
     #if TESTINFO
-    fprintf(stderr, "<indexSize>%lu</indexSize>/n<textSize>%lu</textSize>\n", index->compress_size, index->text_size);
+    fprintf(stderr, "<indexSize>%u</indexSize>/n<textSize>%u</textSize>\n", index->compress_size, index->text_size);
     fprintf(stderr, "<textAlphasize>%d</textAlphasize>\n", index->alpha_size);
-    fprintf(stderr, "<prologueSize>%lu</prologueSize>\n", Test.prologue_size);
-    fprintf(stderr, "<numBuckets2>%lu</numBuckets2>\n", index->num_bucs_lev2);
-    fprintf(stderr, "<numBuckets1>%lu</numBuckets1>\n", index->num_bucs_lev1);
-    fprintf(stderr, "Bucket pointers size %lu Kb bits x ponter %u\n", Test.bucket_pointer/1024, index->var_byte_rappr); 
-    fprintf(stderr, "Buckets compressed size %lu Kb\n", Test.bucket_compr/1024); 
-    fprintf(stderr, "Buckets prefix chars occ size %lu Kb\n", Test.bucket_occ/1024);
-    fprintf(stderr, "Averange buckets alpha size %lu\n", Test.bucket_alphasize/index->num_bucs_lev2);
-    fprintf(stderr, "Bucket bitmaps size %lu\n\n", Test.bucket_bitmap/1024);
+    fprintf(stderr, "<prologueSize>%u</prologueSize>\n", Test.prologue_size);
+    fprintf(stderr, "<numBuckets2>%u</numBuckets2>\n", index->num_bucs_lev2);
+    fprintf(stderr, "<numBuckets1>%u</numBuckets1>\n", index->num_bucs_lev1);
+    fprintf(stderr, "Bucket pointers size %u Kb bits x ponter %u\n", Test.bucket_pointer/1024, index->var_byte_rappr); 
+    fprintf(stderr, "Buckets compressed size %u Kb\n", Test.bucket_compr/1024); 
+    fprintf(stderr, "Buckets prefix chars occ size %u Kb\n", Test.bucket_occ/1024);
+    fprintf(stderr, "Averange buckets alpha size %u\n", Test.bucket_alphasize/index->num_bucs_lev2);
+    fprintf(stderr, "Bucket bitmaps size %u\n\n", Test.bucket_bitmap/1024);
 
-    fprintf(stderr, "Superbuckets size %lu # Superbuckets %lu\n", index->bucket_size_lev1, index->num_bucs_lev1);
-    fprintf(stderr, "Superbuckets prefix chars occ size %lu Kb\n", Test.sbucket_occ/1024);
-    fprintf(stderr, "Averange superbuckets alpha size %lu\n", Test.sbucket_alphasize/index->num_bucs_lev1);
-    fprintf(stderr, "Superbucket bitmaps size %lu\n\n", Test.sbucket_bitmap/1024);
-    fprintf(stderr, "# marked positions %lu\nMarked positions size %lu Kb\n\n", index->num_marked_rows, Test.marked_pos/1024);
+    fprintf(stderr, "Superbuckets size %u # Superbuckets %u\n", index->bucket_size_lev1, index->num_bucs_lev1);
+    fprintf(stderr, "Superbuckets prefix chars occ size %u Kb\n", Test.sbucket_occ/1024);
+    fprintf(stderr, "Averange superbuckets alpha size %u\n", Test.sbucket_alphasize/index->num_bucs_lev1);
+    fprintf(stderr, "Superbucket bitmaps size %u\n\n", Test.sbucket_bitmap/1024);
+    fprintf(stderr, "# marked positions %u\nMarked positions size %u Kb\n\n", index->num_marked_rows, Test.marked_pos/1024);
     #endif
 
     return FM_OK;   
@@ -454,8 +457,7 @@ static int select_subchar(fm_index *s) {
 
 int build_sa(fm_index *s) { 
     
-  // s->lf = (ulong *) malloc(s->text_size * sizeof(ulong));
-  s->lf = (uint32_t *) malloc(s->text_size * sizeof(uint32_t)); // Added NC
+  s->lf = (ulong *) malloc(s->text_size * sizeof(ulong));
   if (s->lf == NULL) {
       return FM_OUTMEM;
   }
@@ -543,8 +545,7 @@ int build_bwt(fm_index *s) {
       after indices knows bwt and return the same.
   */
   
-  // ulong *sa = s->lf;          // points to the first element
-  int32_t *sa = s->lf;          // points to the first element NC
+  ulong *sa = s->lf;                // points to the first element
   uchar *bwt = &(s->bwt[1]);        // points to the second element
   
   for(i=0; i < s->text_size; i++) { // not readable but more performance 

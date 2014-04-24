@@ -89,9 +89,7 @@ count(void *indexe, uchar * pattern, ulong length, ulong * numocc) {
         if(*numocc>0) free(occ);
         return error;       
     }
-    
     num_groups = fm_multi_count(index, pattern, length, &groups);
-
     if (num_groups <= 0) {
         return num_groups;
     }
@@ -136,12 +134,12 @@ count_row_mu(fm_index * index, uchar * pattern, ulong len, ulong sp,
         c = pattern[--len];
         find = 0;
         if(sp == 0) {
-            num_char = occ_all(0, EOF_shift (ep), occsp, occep, chars_in, index);
+            num_char = occ_all(0, EOF_shift(ep), occsp, occep, chars_in, index);
         } else { 
-            num_char = occ_all(EOF_shift (sp - 1), EOF_shift (ep), occsp, occep, chars_in, index);
+            num_char = occ_all(EOF_shift(sp - 1), EOF_shift(ep), occsp, occep, chars_in, index);
         }
         ep = 0; sp = 1;
-        for(i=0; i<num_char; i++) {
+        for(i=0; i < num_char; i++) {
             if ( (index->skip >1) && (chars_in[i] == index->specialchar) ) {
                 ssp = index->bwt_occ[index->specialchar] + occsp[index->specialchar]; 
                 sep = ssp +(occep[index->specialchar] - occsp[index->specialchar]) - 1;
@@ -159,8 +157,6 @@ count_row_mu(fm_index * index, uchar * pattern, ulong len, ulong sp,
             }
         } // end for
     } // end while
-    
-        
     /*
      * return number of occurrences 
      */
@@ -200,7 +196,6 @@ fm_multi_count(fm_index * index, uchar * pattern, ulong len,
      * remap pattern 
      */
     assert(len > 0);
-
     for (i = 0; i < len; i++) {
         if (index->bool_char_map[pattern[i]] == 0) {
             for (j = 0; j <= i; j++) {
@@ -219,7 +214,6 @@ fm_multi_count(fm_index * index, uchar * pattern, ulong len,
             return 0;   /* char not in file */
         }
     }
-
     /* get initial sp and ep values */
     c = pattern[len - 1];
     sp = index->bwt_occ[c];
@@ -229,7 +223,6 @@ fm_multi_count(fm_index * index, uchar * pattern, ulong len,
         ep = index->bwt_occ[c + 1]- 1;
     }
     count_row_mu(index, pattern, len - 1,  sp, ep);    // search for the character c
-
     #if 0
     if (used = 0)
         lista = realloc(lista, sizeof(multi_count) * used);
@@ -246,7 +239,7 @@ fm_multi_count(fm_index * index, uchar * pattern, ulong len,
         pattern[i] = index->inv_char_map[pattern[i]];
     }
     *list = lista;
-
+    
     return used;
 }
 

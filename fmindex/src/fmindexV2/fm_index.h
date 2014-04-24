@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include "fm_common.h"  	/* Common useful functions */
 #include "fm_errors.h"   	/* Implement void error_index(int e) */
+#include <inttypes.h>
 
 #ifndef DATATYPE 
 typedef unsigned char uchar;

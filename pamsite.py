@@ -27,7 +27,7 @@ print("setting up:", fn)
 fmi = fi.FMIndex(text=rec_body)
 # fmi.save(pjoin(strain_path, "test"))
 # fmi = fi.FMIndex(from_fmi_file=pjoin(strain_path, "test"))
-# print("finding")
+print("finding")
 for item in find_list:
     print("found", fmi.count(item), "occurences of", item)
     # ind = fmi.locate(find)
