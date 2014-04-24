@@ -95,6 +95,24 @@ for i, rec in enumerate(records):
     new_potentials.append(matches)
     new_records.append(rec_body)
 
-for p in new_potentials:
-    print(p[0].group(0))
+# just a check
+for i in range(4):
+    print(i)
+    for p in new_potentials:
+        print(p[i].group(0))
 
+min_pam_length = min([len(p) for p in new_potentials])
+newref = new_potentials[3]
+solutions = []
+for i in range(min_pam_length):
+    seq = newref[i].group(0)
+    count = 0
+    for p in new_potentials[0:3]:
+        if seq != p[i].group(0):
+            count += 1
+    if count == 3:
+        solutions.append(i)
+
+print("a solution at ", i, "and total count:", len(solutions), "out of a possible:", min_pam_length)
+for p in new_potentials:
+    print(p[i].group(0))
