@@ -1,6 +1,6 @@
 #ifndef __FM_COMMON
 #define __FM_COMMON
-#define TESTINFO (1)
+#define TESTINFO (0)
 
 #include <stdio.h>
 #include <assert.h>
@@ -13,6 +13,8 @@ typedef unsigned char uchar;
 #ifndef __USE_MISC
 // typedef unsigned long ulong;
 // Added NC (fmindexV2 is clearly designed for 32 bits for the ulong only)
+// 64 bit OS treat unsigned longs at 8 bytes intead of 4 bytes which it is
+// inferred fmindexV2 was developed at 
 typedef uint32_t ulong;
 #endif
 #define DATATYPE 1
