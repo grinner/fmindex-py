@@ -276,6 +276,8 @@ FMIndex_locate(FMIndex* self, PyObject *args) {
     int error, i;
     PyObject* outtuple = NULL;
 
+    Py
+
     if (!PyArg_ParseTuple(args, "s#", &pattern, &pattern_length))  {
         PyErr_SetString(PyExc_TypeError, "FMIndex_locate: arg problem\n");
         return NULL; 
@@ -295,7 +297,7 @@ FMIndex_locate(FMIndex* self, PyObject *args) {
     if (numocc) {
         outtuple = PyTuple_New(numocc);
         for (i=0; i < numocc; i++) {
-            PyTuple_SET_ITEM(outtuple, i, Py_BuildValue("l", occs[i]));
+            PyTuple_SET_ITEM(outtuple, i, PyLong_FromLong(occs[i]));
         }
         free(occs);
         return outtuple;
